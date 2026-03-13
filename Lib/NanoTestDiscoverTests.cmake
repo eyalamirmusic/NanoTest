@@ -17,6 +17,13 @@ endfunction()
 # and adds each one as a separate CTest test.
 
 function(nano_discover_tests TARGET)
+    if(CMAKE_CROSSCOMPILING)
+        # Can't run the executable on the host when cross-compiling.
+        # Fall back to registering the target as a single CTest entry.
+        add_test(NAME ${TARGET} COMMAND ${TARGET})
+        return()
+    endif()
+
     add_custom_command(
         TARGET ${TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
