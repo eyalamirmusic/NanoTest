@@ -4,58 +4,12 @@
 #include <source_location>
 #include <string>
 #include <string_view>
-#include <vector>
 
 namespace nano
 {
-using Callback = std::function<void()>;
-
-struct TestFailure
-{
-    std::string file;
-    int line;
-    std::string expression;
-    std::string message;
-};
-
-struct TestCase
-{
-    std::string name;
-    Callback body;
-};
-
-class Registry
-{
-public:
-    static Registry& instance();
-
-    void add(std::string name, std::function<void()> body);
-    int run();
-
-    void fail(const std::source_location& loc,
-              std::string_view expression,
-              std::string_view message = {});
-
-    [[nodiscard]] bool currentTestFailed() const { return currentFailed; }
-
-private:
-    std::vector<TestCase> tests;
-    bool currentFailed = false;
-    std::vector<TestFailure> currentFailures;
-};
-
-// RAII helper for auto-registration.
-struct AutoRegister
-{
-    AutoRegister(std::string nameToUse, const Callback& bodyToUse);
-};
-
-// ---------------------------------------------------------------------------
-// Free functions (macro-free API)
-// ---------------------------------------------------------------------------
 
 // Register a test. Returns a dummy value for use with static auto.
-bool test(std::string name, const Callback& body);
+bool test(std::string name, const std::function<void()>& body);
 
 // Run all registered tests. Returns 0 on success, 1 on failure.
 int run();
@@ -73,7 +27,7 @@ void check(bool expr,
 
 #define NANO_TEST(name)                                                             \
     static void nanoTest_##name();                                                  \
-    static ::nano::AutoRegister nanoReg_##name(#name, nanoTest_##name);             \
+    static auto nanoReg_##name = ::nano::test(#name, nanoTest_##name);              \
     static void nanoTest_##name()
 
 #define NANO_ASSERT(expr) ::nano::check((expr), #expr)
