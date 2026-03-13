@@ -4,19 +4,23 @@
 #
 # Usage:
 #   nano_add_executable(MyTests tests.cpp)
+#   nano_add_executable(MyTests tests.cpp TEST_PREFIX "MyTests.")
 
 function(nano_add_executable TARGET)
-    add_executable(${TARGET} ${ARGN})
+    cmake_parse_arguments(ARG "" "TEST_PREFIX" "" ${ARGN})
+    add_executable(${TARGET} ${ARG_UNPARSED_ARGUMENTS})
     target_link_libraries(${TARGET} PRIVATE NanoTest)
-    nano_discover_tests(${TARGET})
+    nano_discover_tests(${TARGET} TEST_PREFIX "${ARG_TEST_PREFIX}")
 endfunction()
 
-# nano_discover_tests(TARGET)
+# nano_discover_tests(TARGET [TEST_PREFIX prefix])
 #
 # Discovers individual test cases registered in a NanoTest executable
 # and adds each one as a separate CTest test.
 
 function(nano_discover_tests TARGET)
+    cmake_parse_arguments(ARG "" "TEST_PREFIX" "" ${ARGN})
+
     if(CMAKE_CROSSCOMPILING)
         # Can't run the executable on the host when cross-compiling.
         # Fall back to registering the target as a single CTest entry.
@@ -28,7 +32,7 @@ function(nano_discover_tests TARGET)
         TARGET ${TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
             -D "TEST_EXECUTABLE=$<TARGET_FILE:${TARGET}>"
-            -D "TEST_PREFIX="
+            -D "TEST_PREFIX=${ARG_TEST_PREFIX}"
             -D "CTEST_FILE=${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_tests.cmake"
             -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/NanoTestAddTests.cmake"
         VERBATIM
