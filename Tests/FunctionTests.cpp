@@ -19,7 +19,7 @@ auto checkStrings = nano::test("CheckStrings",
 
 auto checkFalse = nano::test("CheckFalse", [] { nano::check(!false); });
 
-int main()
+int main(int argc, char* argv[])
 {
-    return nano::run();
+    return nano::run(argc, argv);
 }

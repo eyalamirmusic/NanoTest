@@ -45,15 +45,32 @@ struct Registry
                                    std::string(message)});
     }
 
-    int run()
+    void listTests()
+    {
+        for (auto& [name, body]: tests)
+            std::cout << name << '\n';
+    }
+
+    int run(std::string_view filter = {})
     {
         auto passed = 0;
         auto failed = 0;
-
-        std::cout << std::format("NanoTest — running {} test(s)\n\n", tests.size());
+        auto total = 0;
 
         for (auto& [name, body]: tests)
         {
+            if (!filter.empty() && name != filter)
+                continue;
+            ++total;
+        }
+
+        std::cout << std::format("NanoTest — running {} test(s)\n\n", total);
+
+        for (auto& [name, body]: tests)
+        {
+            if (!filter.empty() && name != filter)
+                continue;
+
             currentFailed = false;
             currentFailures.clear();
 
@@ -115,9 +132,23 @@ bool test(std::string name, const std::function<void()>& body)
     return true;
 }
 
-int run()
+int run(int argc, char* argv[])
 {
-    return Registry::instance().run();
+    auto& reg = Registry::instance();
+
+    for (auto i = 1; i < argc; ++i)
+    {
+        auto arg = std::string_view(argv[i]);
+        if (arg == "--list-tests")
+        {
+            reg.listTests();
+            return 0;
+        }
+        if (arg == "--test" && i + 1 < argc)
+            return reg.run(argv[++i]);
+    }
+
+    return reg.run();
 }
 
 void check(bool expr, std::string_view exprStr, const std::source_location& loc)

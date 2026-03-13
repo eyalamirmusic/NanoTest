@@ -12,7 +12,8 @@ namespace nano
 bool test(std::string name, const std::function<void()>& body);
 
 // Run all registered tests. Returns 0 on success, 1 on failure.
-int run();
+// Supports --list-tests and --test <name> when argc/argv are provided.
+int run(int argc = 0, char* argv[] = nullptr);
 
 // Assert that expr is true.
 void check(bool expr,
@@ -33,7 +34,7 @@ void check(bool expr,
 #define NANO_ASSERT(expr) ::nano::check((expr), #expr)
 
 #define NANO_TEST_MAIN                                                              \
-    int main()                                                                      \
+    int main(int argc, char* argv[])                                                \
     {                                                                               \
-        return ::nano::run();                                                       \
+        return ::nano::run(argc, argv);                                             \
     }
