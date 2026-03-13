@@ -1,6 +1,5 @@
 #include "NanoTest.h"
 
-#include <format>
 #include <iostream>
 #include <vector>
 
@@ -64,7 +63,7 @@ struct Registry
             ++total;
         }
 
-        std::cout << std::format("NanoTest — running {} test(s)\n\n", total);
+        std::cout << "NanoTest — running " << total << " test(s)\n\n";
 
         for (auto& [name, body]: tests)
         {
@@ -93,30 +92,30 @@ struct Registry
             if (currentFailed)
             {
                 ++failed;
-                std::cout << std::format("  FAIL  {}\n", name);
+                std::cout << "  FAIL  " << name << '\n';
                 for (auto& f: currentFailures)
                 {
                     if (f.line > 0)
                     {
-                        std::cout << std::format(
-                            "        {}:{}: {}\n", f.file, f.line, f.expression);
+                        std::cout << "        " << f.file << ':' << f.line
+                                  << ": " << f.expression << '\n';
                     }
                     else if (!f.message.empty())
                     {
-                        std::cout
-                            << std::format("        exception: {}\n", f.message);
+                        std::cout << "        exception: " << f.message << '\n';
                     }
                 }
             }
             else
             {
                 ++passed;
-                std::cout << std::format("  PASS  {}\n", name);
+                std::cout << "  PASS  " << name << '\n';
             }
         }
 
-        std::cout << std::format(
-            "\n{} passed, {} failed, {} total\n", passed, failed, passed + failed);
+        std::cout << '\n'
+                  << passed << " passed, " << failed << " failed, "
+                  << passed + failed << " total\n";
 
         return failed == 0 ? 0 : 1;
     }
