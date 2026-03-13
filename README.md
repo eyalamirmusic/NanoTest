@@ -12,16 +12,38 @@ Macro-free by design.
 ```cpp
 #include <NanoTest/NanoTest.h>
 
-auto addition = nano::test("Addition", []
-{
-    nano::check(2 + 2 == 4);
-});
+using namespace nano;
 
+auto addition = test("Addition", []
+{
+    check(2 + 2 == 4);
+});
+```
+
+Using `using namespace nano;` keeps test files expressive and free of repetitive prefixes.
+
+## Providing `main()`
+
+NanoTest needs a `main()` function that calls `nano::run`. You can either link the built-in one or write your own.
+
+**Using `NanoTestMain` (recommended)** — link the provided `main()` so your test files don't need one:
+
+```cmake
+add_executable(MyTests tests.cpp)
+target_link_libraries(MyTests PRIVATE NanoTestMain)
+nano_discover_tests(MyTests)
+```
+
+**Writing your own** — useful if you need custom setup before running tests:
+
+```cpp
 int main(int argc, char* argv[])
 {
     return nano::run(argc, argv);
 }
 ```
+
+## CMake Integration
 
 **CMakeLists.txt:**
 
@@ -45,6 +67,16 @@ enable_testing()
 nano_add_executable(MyTests tests.cpp)
 ```
 
+`nano_add_executable` creates a test target, links NanoTest, and registers each test case individually with CTest. It is equivalent to:
+
+```cmake
+add_executable(MyTests tests.cpp)
+target_link_libraries(MyTests PRIVATE NanoTest)
+nano_discover_tests(MyTests)
+```
+
+You can and should of course link the test app with your libraries.
+
 Build and run:
 
 ```bash
@@ -55,18 +87,7 @@ cmake -B build && cmake --build build && ctest --test-dir build
 1/1 Test #1: Addition .....   Passed    0.00 sec
 ```
 
-That's it. Each test is automatically discovered and registered with CTest.
-
-## CMake Details
-
-`nano_add_executable` creates a test target, links NanoTest, and registers each test case individually with CTest. It is equivalent to:
-
-```cmake
-add_executable(MyTests tests.cpp)
-target_link_libraries(MyTests PRIVATE NanoTest)
-nano_discover_tests(MyTests)
-```
-You can and should of course link the test app with your libraries
+Each test is automatically discovered and registered with CTest.
 
 ### Running Tests
 
