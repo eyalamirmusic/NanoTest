@@ -1,0 +1,2 @@
+add_library(DummyLibraryUnderTest STATIC Lib.cpp)
+target_include_directories(DummyLibraryUnderTest PUBLIC ${CMAKE_CURRENT_LIST_DIR})
