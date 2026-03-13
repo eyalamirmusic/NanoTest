@@ -1,4 +1,4 @@
-#include <NanoTest/NanoTest.h>
+#include <NanoTest/NanoTestMacros.h>
 
 NANO_TEST(TrueIsTrue)
 {

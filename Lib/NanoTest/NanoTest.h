@@ -30,20 +30,3 @@ void check(bool expr,
            const std::source_location& loc = std::source_location::current());
 
 } // namespace nano
-
-// ---------------------------------------------------------------------------
-// Macros (thin wrappers that add expression stringification)
-// ---------------------------------------------------------------------------
-
-#define NANO_TEST(name)                                                             \
-    static void nanoTest_##name();                                                  \
-    static auto nanoReg_##name = ::nano::test(#name, nanoTest_##name);              \
-    static void nanoTest_##name()
-
-#define NANO_ASSERT(expr) ::nano::check((expr), #expr)
-
-#define NANO_TEST_MAIN                                                              \
-    int main(int argc, char* argv[])                                                \
-    {                                                                               \
-        return ::nano::run(argc, argv);                                             \
-    }
