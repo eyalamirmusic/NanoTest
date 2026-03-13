@@ -22,27 +22,6 @@ auto addition = test("Addition") = []
 
 Using `using namespace nano;` keeps test files expressive and free of repetitive prefixes.
 
-## Providing `main()`
-
-NanoTest needs a `main()` function that calls `nano::run`. You can either link the built-in one or write your own.
-
-**Using `NanoTestMain` (recommended)** — link the provided `main()` so your test files don't need one:
-
-```cmake
-add_executable(MyTests tests.cpp)
-target_link_libraries(MyTests PRIVATE NanoTestMain)
-nano_discover_tests(MyTests)
-```
-
-**Writing your own** — useful if you need custom setup before running tests:
-
-```cpp
-int main(int argc, char* argv[])
-{
-    return nano::run(argc, argv);
-}
-```
-
 ## CMake Integration
 
 **CMakeLists.txt:**
@@ -64,18 +43,52 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(NanoTest)
 
 enable_testing()
-nano_add_executable(MyTests tests.cpp)
+nano_add_executable(MyTests SOURCES tests.cpp)
 ```
 
-`nano_add_executable` creates a test target, links NanoTest, and registers each test case individually with CTest. It is equivalent to:
+`nano_add_executable` creates a test executable with a generated `main()`, links NanoTest, and registers each test case individually with CTest. You can also link your own libraries using `TARGETS`:
+
+```cmake
+nano_add_executable(MyTests SOURCES tests.cpp TARGETS MyLib)
+```
+
+### Custom `main()`
+
+By default, `nano_add_executable` provides a `main()` that calls `nano::run`. If you need custom setup before running tests, pass `NO_MAIN` and write your own:
+
+```cmake
+nano_add_executable(MyTests SOURCES tests.cpp NO_MAIN)
+```
+
+```cpp
+int main(int argc, char* argv[])
+{
+    // custom setup ...
+    return nano::run(argc, argv);
+}
+```
+
+### Setting up an existing target
+
+Use `nano_setup_target` to set up a target you've already created with `add_executable`. This links NanoTest (without a generated `main()`) and discovers tests:
 
 ```cmake
 add_executable(MyTests tests.cpp)
-target_link_libraries(MyTests PRIVATE NanoTest)
-nano_discover_tests(MyTests)
+nano_setup_target(MyTests TARGETS MyLib)
 ```
 
-You can and should of course link the test app with your libraries.
+Pass `WITH_MAIN` if you want the generated `main()`:
+
+```cmake
+add_executable(MyTests tests.cpp)
+nano_setup_target(MyTests WITH_MAIN)
+```
+
+Both functions also accept `TEST_PREFIX` to namespace CTest entries when test names might collide across targets:
+
+```cmake
+nano_add_executable(MyTests SOURCES tests.cpp TEST_PREFIX "MyTests:")
+```
 
 Build and run:
 
