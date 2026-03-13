@@ -39,12 +39,6 @@ void check(bool expr, std::string_view exprStr, const std::source_location& loc)
         Registry::instance().fail(loc, exprStr);
 }
 
-void checkFalse(bool expr, std::string_view exprStr, const std::source_location& loc)
-{
-    if (expr)
-        Registry::instance().fail(loc, exprStr);
-}
-
 int Registry::run()
 {
     auto passed = 0;

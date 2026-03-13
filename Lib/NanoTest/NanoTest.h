@@ -1,7 +1,5 @@
 #pragma once
 
-#include <concepts>
-#include <format>
 #include <functional>
 #include <source_location>
 #include <string>
@@ -73,45 +71,6 @@ void check(bool expr,
            std::string_view exprStr = {},
            const std::source_location& loc = std::source_location::current());
 
-// Assert that a == b.
-template <typename A, typename B>
-    requires std::equality_comparable_with<A, B>
-void checkEq(const A& a,
-             const B& b,
-             std::string_view exprStr = {},
-             const std::source_location& loc = std::source_location::current())
-{
-    if (!(a == b))
-    {
-        auto msg = exprStr.empty()
-                       ? std::format("expected equal, got '{}' vs '{}'", a, b)
-                       : std::string(exprStr);
-        Registry::instance().fail(loc, msg);
-    }
-}
-
-// Assert that a != b.
-template <typename A, typename B>
-    requires std::equality_comparable_with<A, B>
-void checkNe(const A& a,
-             const B& b,
-             std::string_view exprStr = {},
-             const std::source_location& loc = std::source_location::current())
-{
-    if (!(a != b))
-    {
-        auto msg = exprStr.empty()
-                       ? std::format("expected not equal, got '{}' vs '{}'", a, b)
-                       : std::string(exprStr);
-        Registry::instance().fail(loc, msg);
-    }
-}
-
-// Assert that expr is false.
-void checkFalse(bool expr,
-                std::string_view exprStr = {},
-                const std::source_location& loc = std::source_location::current());
-
 } // namespace nano
 
 // ---------------------------------------------------------------------------
@@ -124,9 +83,6 @@ void checkFalse(bool expr,
     static void nanoTest_##name()
 
 #define NANO_ASSERT(expr) ::nano::check((expr), #expr)
-#define NANO_ASSERT_FALSE(expr) ::nano::checkFalse((expr), "!(" #expr ")")
-#define NANO_ASSERT_EQ(a, b) ::nano::checkEq((a), (b), #a " == " #b)
-#define NANO_ASSERT_NE(a, b) ::nano::checkNe((a), (b), #a " != " #b)
 
 #define NANO_TEST_MAIN                                                              \
     int main()                                                                      \
