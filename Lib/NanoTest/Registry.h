@@ -9,15 +9,8 @@
 
 namespace nano
 {
-
 struct Registry
 {
-    static Registry& instance()
-    {
-        static auto reg = Registry();
-        return reg;
-    }
-
     void add(std::string nameToUse, const std::function<void()>& bodyToUse)
     {
         tests.push_back({std::move(nameToUse), bodyToUse});
@@ -110,5 +103,11 @@ private:
         currentFailures.push_back({"<exception>", 0, "", std::string(what)});
     }
 };
+
+inline Registry& getRegistry()
+{
+    static auto reg = Registry();
+    return reg;
+}
 
 } // namespace nano

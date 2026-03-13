@@ -7,17 +7,18 @@ namespace nano
 
 bool test(std::string name, const std::function<void()>& body)
 {
-    Registry::instance().add(std::move(name), body);
+    getRegistry().add(std::move(name), body);
     return true;
 }
 
 int run(int argc, char* argv[])
 {
-    auto& reg = Registry::instance();
+    auto& reg = getRegistry();
 
     for (auto i = 1; i < argc; ++i)
     {
         auto arg = std::string_view(argv[i]);
+
         if (arg == "--list-tests")
         {
             reg.listTests();
@@ -33,7 +34,7 @@ int run(int argc, char* argv[])
 void check(bool expr, std::string_view exprStr, const std::source_location& loc)
 {
     if (!expr)
-        Registry::instance().fail(loc, exprStr);
+        getRegistry().fail(loc, exprStr);
 }
 
 } // namespace nano
