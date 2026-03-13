@@ -1,16 +1,57 @@
-# nano_add_executable(TARGET source1 [source2 ...])
+# nano_setup_target(TARGET [SOURCES ...] [TARGETS ...] [TEST_PREFIX prefix] [WITH_MAIN])
 #
-# Creates a test executable, links NanoTest, and discovers individual tests.
+# Sets up an existing executable target for use with NanoTest:
+# links NanoTest, optionally adds sources, links additional targets,
+# and discovers tests. Pass WITH_MAIN to link NanoTestMain (a prebuilt
+# main() that calls nano::run).
 #
 # Usage:
-#   nano_add_executable(MyTests tests.cpp)
-#   nano_add_executable(MyTests tests.cpp TEST_PREFIX "MyTests.")
+#   nano_setup_target(MyTests SOURCES tests.cpp TARGETS MyLib)
+#   nano_setup_target(MyTests SOURCES tests.cpp WITH_MAIN)
+
+function(nano_setup_target TARGET)
+    cmake_parse_arguments(ARG "WITH_MAIN" "TEST_PREFIX" "SOURCES;TARGETS" ${ARGN})
+
+    if(ARG_SOURCES)
+        target_sources(${TARGET} PRIVATE ${ARG_SOURCES})
+    endif()
+
+    if(ARG_WITH_MAIN)
+        target_link_libraries(${TARGET} PRIVATE NanoTestMain)
+    else()
+        target_link_libraries(${TARGET} PRIVATE NanoTest)
+    endif()
+
+    if(ARG_TARGETS)
+        target_link_libraries(${TARGET} PRIVATE ${ARG_TARGETS})
+    endif()
+
+    nano_discover_tests(${TARGET} TEST_PREFIX "${ARG_TEST_PREFIX}")
+endfunction()
+
+# nano_add_executable(TARGET [SOURCES ...] [TARGETS ...] [TEST_PREFIX prefix] [NO_MAIN])
+#
+# Creates a test executable, links NanoTestMain, and discovers individual
+# tests. Pass NO_MAIN to link NanoTest instead (you provide your own main).
+#
+# Usage:
+#   nano_add_executable(MyTests SOURCES tests.cpp)
+#   nano_add_executable(MyTests SOURCES tests.cpp NO_MAIN TARGETS MyLib)
 
 function(nano_add_executable TARGET)
-    cmake_parse_arguments(ARG "" "TEST_PREFIX" "" ${ARGN})
-    add_executable(${TARGET} ${ARG_UNPARSED_ARGUMENTS})
-    target_link_libraries(${TARGET} PRIVATE NanoTest)
-    nano_discover_tests(${TARGET} TEST_PREFIX "${ARG_TEST_PREFIX}")
+    cmake_parse_arguments(ARG "NO_MAIN" "TEST_PREFIX" "SOURCES;TARGETS" ${ARGN})
+
+    add_executable(${TARGET})
+
+    set(_args SOURCES ${ARG_SOURCES} TEST_PREFIX "${ARG_TEST_PREFIX}")
+    if(ARG_TARGETS)
+        list(APPEND _args TARGETS ${ARG_TARGETS})
+    endif()
+    if(NOT ARG_NO_MAIN)
+        list(APPEND _args WITH_MAIN)
+    endif()
+
+    nano_setup_target(${TARGET} ${_args})
 endfunction()
 
 # nano_discover_tests(TARGET [TEST_PREFIX prefix])

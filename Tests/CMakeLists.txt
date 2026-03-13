@@ -1,5 +1,5 @@
-nano_add_executable(NanoTestFunctions FunctionTests.cpp)
+nano_add_executable(NanoTestFunctions
+    SOURCES FunctionTestsWithMain.cpp)
 
-add_executable(NanoTestWithMain FunctionTestsWithMain.cpp)
-target_link_libraries(NanoTestWithMain PRIVATE NanoTestMain)
-nano_discover_tests(NanoTestWithMain TEST_PREFIX "MainTests:")
+add_executable(CustomMain FunctionTests.cpp)
+nano_setup_target(CustomMain TEST_PREFIX "MainTests:")
