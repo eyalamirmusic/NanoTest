@@ -26,12 +26,17 @@ int main(int argc, char* argv[])
 **CMakeLists.txt:**
 
 ```cmake
+cmake_minimum_required(VERSION 3.21)
+project(NanoTestExample)
+
+set(CMAKE_CXX_STANDARD 20)
+
 include(FetchContent)
 
 FetchContent_Declare(
-    NanoTest
-    GIT_REPOSITORY https://github.com/eyalamirmusic/NanoTest.git
-    GIT_TAG main
+        NanoTest
+        GIT_REPOSITORY https://github.com/eyalamirmusic/NanoTest.git
+        GIT_TAG main
 )
 
 FetchContent_MakeAvailable(NanoTest)
