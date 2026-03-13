@@ -70,11 +70,13 @@ private:
     std::vector<TestCase*> filteredTests(std::string_view filter)
     {
         auto result = std::vector<TestCase*>();
+
         for (auto& t: tests)
         {
             if (filter.empty() || t.name == filter)
                 result.push_back(&t);
         }
+
         return result;
     }
 

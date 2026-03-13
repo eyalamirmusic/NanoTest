@@ -11,24 +11,34 @@ bool test(std::string name, const std::function<void()>& body)
     return true;
 }
 
-int run(int argc, char* argv[])
+int run(const RunOptions& options)
 {
     auto& reg = getRegistry();
+
+    if (options.listTests)
+    {
+        reg.listTests();
+        return 0;
+    }
+
+    return reg.run(options.test);
+}
+
+int run(int argc, char* argv[])
+{
+    auto options = RunOptions();
 
     for (auto i = 1; i < argc; ++i)
     {
         auto arg = std::string_view(argv[i]);
 
         if (arg == "--list-tests")
-        {
-            reg.listTests();
-            return 0;
-        }
-        if (arg == "--test" && i + 1 < argc)
-            return reg.run(argv[++i]);
+            options.listTests = true;
+        else if (arg == "--test")
+            options.test = arg;
     }
 
-    return reg.run();
+    return run(options);
 }
 
 void check(bool expr, std::string_view exprStr, const std::source_location& loc)
