@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <format>
 #include <functional>
 #include <source_location>
 #include <string>
@@ -32,7 +33,6 @@ public:
     void add(std::string name, std::function<void()> body);
     int run();
 
-    // Called by assertion macros to report a failure.
     void fail(const std::source_location& loc,
               std::string_view expression,
               std::string_view message = {});
@@ -54,10 +54,68 @@ struct AutoRegister
     }
 };
 
+// ---------------------------------------------------------------------------
+// Free functions (macro-free API)
+// ---------------------------------------------------------------------------
+
+// Register a test. Returns a dummy value for use with static auto.
+inline auto test(std::string name, std::function<void()> body) -> bool
+{
+    Registry::instance().add(std::move(name), std::move(body));
+    return true;
+}
+
+// Run all registered tests. Returns 0 on success, 1 on failure.
+int run();
+
+// Assert that expr is true.
+void check(bool expr,
+           std::string_view exprStr = {},
+           const std::source_location& loc = std::source_location::current());
+
+// Assert that a == b.
+template <typename A, typename B>
+    requires std::equality_comparable_with<A, B>
+void checkEq(const A& a,
+             const B& b,
+             std::string_view exprStr = {},
+             const std::source_location& loc = std::source_location::current())
+{
+    if (!(a == b))
+    {
+        auto msg = exprStr.empty()
+                       ? std::format("expected equal, got '{}' vs '{}'", a, b)
+                       : std::string(exprStr);
+        Registry::instance().fail(loc, msg);
+    }
+}
+
+// Assert that a != b.
+template <typename A, typename B>
+    requires std::equality_comparable_with<A, B>
+void checkNe(const A& a,
+             const B& b,
+             std::string_view exprStr = {},
+             const std::source_location& loc = std::source_location::current())
+{
+    if (!(a != b))
+    {
+        auto msg = exprStr.empty()
+                       ? std::format("expected not equal, got '{}' vs '{}'", a, b)
+                       : std::string(exprStr);
+        Registry::instance().fail(loc, msg);
+    }
+}
+
+// Assert that expr is false.
+void checkFalse(bool expr,
+                std::string_view exprStr = {},
+                const std::source_location& loc = std::source_location::current());
+
 } // namespace nano
 
 // ---------------------------------------------------------------------------
-// Macros
+// Macros (thin wrappers that add expression stringification)
 // ---------------------------------------------------------------------------
 
 #define NANO_TEST(name)                                                             \
@@ -65,49 +123,13 @@ struct AutoRegister
     static ::nano::AutoRegister nanoReg_##name(#name, nanoTest_##name);             \
     static void nanoTest_##name()
 
-#define NANO_ASSERT(expr)                                                           \
-    do                                                                              \
-    {                                                                               \
-        if (!(expr))                                                                \
-        {                                                                           \
-            ::nano::Registry::instance().fail(std::source_location::current(),      \
-                                              #expr);                               \
-        }                                                                           \
-    } while (false)
+#define NANO_ASSERT(expr) ::nano::check((expr), #expr)
+#define NANO_ASSERT_FALSE(expr) ::nano::checkFalse((expr), "!(" #expr ")")
+#define NANO_ASSERT_EQ(a, b) ::nano::checkEq((a), (b), #a " == " #b)
+#define NANO_ASSERT_NE(a, b) ::nano::checkNe((a), (b), #a " != " #b)
 
-#define NANO_ASSERT_FALSE(expr)                                                     \
-    do                                                                              \
-    {                                                                               \
-        if ((expr))                                                                 \
-        {                                                                           \
-            ::nano::Registry::instance().fail(std::source_location::current(),      \
-                                              "!(" #expr ")");                      \
-        }                                                                           \
-    } while (false)
-
-#define NANO_ASSERT_EQ(a, b)                                                        \
-    do                                                                              \
-    {                                                                               \
-        if (!((a) == (b)))                                                          \
-        {                                                                           \
-            ::nano::Registry::instance().fail(std::source_location::current(),      \
-                                              #a " == " #b);                        \
-        }                                                                           \
-    } while (false)
-
-#define NANO_ASSERT_NE(a, b)                                                        \
-    do                                                                              \
-    {                                                                               \
-        if (!((a) != (b)))                                                          \
-        {                                                                           \
-            ::nano::Registry::instance().fail(std::source_location::current(),      \
-                                              #a " != " #b);                        \
-        }                                                                           \
-    } while (false)
-
-// Provide a main() that runs all registered tests.
 #define NANO_TEST_MAIN                                                              \
     int main()                                                                      \
     {                                                                               \
-        return ::nano::Registry::instance().run();                                  \
+        return ::nano::run();                                                       \
     }

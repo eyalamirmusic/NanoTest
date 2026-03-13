@@ -28,6 +28,23 @@ void Registry::fail(const std::source_location& loc,
                                std::string(message)});
 }
 
+int run()
+{
+    return Registry::instance().run();
+}
+
+void check(bool expr, std::string_view exprStr, const std::source_location& loc)
+{
+    if (!expr)
+        Registry::instance().fail(loc, exprStr);
+}
+
+void checkFalse(bool expr, std::string_view exprStr, const std::source_location& loc)
+{
+    if (expr)
+        Registry::instance().fail(loc, exprStr);
+}
+
 int Registry::run()
 {
     auto passed = 0;
