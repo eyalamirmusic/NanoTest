@@ -45,8 +45,8 @@ int run(int argc, char* argv[])
 
         if (arg == "--list-tests")
             options.listTests = true;
-        else if (arg == "--test")
-            options.test = arg;
+        else if (arg == "--test" && i + 1 < argc)
+            options.test = argv[++i];
     }
 
     return run(options);
