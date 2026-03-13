@@ -1,4 +1,5 @@
 #include <NanoTest/NanoTest.h>
+#include <string>
 
 using namespace nano;
 
