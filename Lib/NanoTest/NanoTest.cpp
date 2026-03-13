@@ -69,7 +69,8 @@ struct Registry
             catch (...)
             {
                 currentFailed = true;
-                currentFailures.push_back({"<exception>", 0, "", "unknown exception"});
+                currentFailures.push_back(
+                    {"<exception>", 0, "", "unknown exception"});
             }
 
             if (currentFailed)
@@ -85,7 +86,8 @@ struct Registry
                     }
                     else if (!f.message.empty())
                     {
-                        std::cout << std::format("        exception: {}\n", f.message);
+                        std::cout
+                            << std::format("        exception: {}\n", f.message);
                     }
                 }
             }
