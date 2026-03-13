@@ -52,77 +52,103 @@ struct Registry
 
     int run(std::string_view filter = {})
     {
+        auto filtered = filteredTests(filter);
+
+        printHeader(filtered.size());
+
         auto passed = 0;
         auto failed = 0;
-        auto total = 0;
 
-        for (auto& [name, body]: tests)
+        for (auto* test: filtered)
         {
-            if (!filter.empty() && name != filter)
-                continue;
-            ++total;
-        }
-
-        std::cout << "NanoTest — running " << total << " test(s)\n\n";
-
-        for (auto& [name, body]: tests)
-        {
-            if (!filter.empty() && name != filter)
-                continue;
-
-            currentFailed = false;
-            currentFailures.clear();
-
-            try
-            {
-                body();
-            }
-            catch (const std::exception& e)
-            {
-                currentFailed = true;
-                currentFailures.push_back({"<exception>", 0, "", e.what()});
-            }
-            catch (...)
-            {
-                currentFailed = true;
-                currentFailures.push_back(
-                    {"<exception>", 0, "", "unknown exception"});
-            }
+            executeTest(*test);
 
             if (currentFailed)
             {
                 ++failed;
-                std::cout << "  FAIL  " << name << '\n';
-                for (auto& f: currentFailures)
-                {
-                    if (f.line > 0)
-                    {
-                        std::cout << "        " << f.file << ':' << f.line
-                                  << ": " << f.expression << '\n';
-                    }
-                    else if (!f.message.empty())
-                    {
-                        std::cout << "        exception: " << f.message << '\n';
-                    }
-                }
+                printFailure(test->name);
             }
             else
             {
                 ++passed;
-                std::cout << "  PASS  " << name << '\n';
+                printPass(test->name);
             }
         }
 
-        std::cout << '\n'
-                  << passed << " passed, " << failed << " failed, "
-                  << passed + failed << " total\n";
-
+        printSummary(passed, failed);
         return failed == 0 ? 0 : 1;
     }
 
     std::vector<TestCase> tests;
     bool currentFailed = false;
     std::vector<TestFailure> currentFailures;
+
+private:
+    std::vector<TestCase*> filteredTests(std::string_view filter)
+    {
+        auto result = std::vector<TestCase*>();
+        for (auto& t: tests)
+        {
+            if (filter.empty() || t.name == filter)
+                result.push_back(&t);
+        }
+        return result;
+    }
+
+    void executeTest(TestCase& test)
+    {
+        currentFailed = false;
+        currentFailures.clear();
+
+        try
+        {
+            test.body();
+        }
+        catch (const std::exception& e)
+        {
+            recordException(e.what());
+        }
+        catch (...)
+        {
+            recordException("unknown exception");
+        }
+    }
+
+    void recordException(std::string_view what)
+    {
+        currentFailed = true;
+        currentFailures.push_back({"<exception>", 0, "", std::string(what)});
+    }
+
+    static void printHeader(std::size_t count)
+    {
+        std::cout << "NanoTest — running " << count << " test(s)\n\n";
+    }
+
+    static void printPass(std::string_view name)
+    {
+        std::cout << "  PASS  " << name << '\n';
+    }
+
+    void printFailure(std::string_view name)
+    {
+        std::cout << "  FAIL  " << name << '\n';
+        for (auto& f: currentFailures)
+        {
+            if (f.line > 0)
+                std::cout << "        " << f.file << ':' << f.line
+                          << ": " << f.expression << '\n';
+            else if (!f.message.empty())
+                std::cout << "        exception: " << f.message << '\n';
+        }
+    }
+
+    static void printSummary(int passed, int failed)
+    {
+        std::cout << '\n'
+                  << passed << " passed, " << failed << " failed, "
+                  << passed + failed << " total\n";
+    }
 };
 
 bool test(std::string name, const std::function<void()>& body)
