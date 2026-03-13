@@ -9,6 +9,15 @@
 
 namespace nano
 {
+constexpr bool areExceptionsEnabled()
+{
+#if __cpp_exceptions
+    return true;
+#else
+    return false;
+#endif
+}
+
 struct Registry
 {
     void add(std::string_view nameToUse,
@@ -82,6 +91,7 @@ private:
         currentFailed = false;
         currentFailures.clear();
 
+#if __cpp_exceptions
         try
         {
             test.body();
@@ -94,6 +104,9 @@ private:
         {
             recordException("unknown exception");
         }
+#else
+        test.body();
+#endif
     }
 
     void recordException(std::string_view what)
@@ -102,6 +115,7 @@ private:
         currentFailures.push_back(
             {"<exception>", 0, "", std::string(what)});
     }
+
 
     std::vector<TestCase> tests;
     bool currentFailed = false;
