@@ -5,20 +5,19 @@
 namespace nano
 {
 
-TestProxy&
-TestProxy::operator=(const std::function<void()>& body)
+TestProxy& TestProxy::operator=(const std::function<void()>& body)
 {
     test(name, body);
     return *this;
 }
 
-bool test(const std::string& name, const std::function<void()>& body)
+bool test(std::string_view name, const std::function<void()>& body)
 {
     getRegistry().add(name, body);
     return true;
 }
 
-TestProxy test(const std::string& name)
+TestProxy test(std::string_view name)
 {
     return {name};
 }

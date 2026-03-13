@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <source_location>
-#include <string>
 #include <string_view>
 
 namespace nano
@@ -10,7 +9,7 @@ namespace nano
 
 struct RunOptions
 {
-    std::string test;
+    std::string_view test;
     bool listTests = false;
 };
 
@@ -19,14 +18,14 @@ struct TestProxy
 {
     TestProxy& operator=(const std::function<void()>& body);
 
-    std::string name;
+    std::string_view name;
 };
 
 // Register a test with a body directly.
-bool test(const std::string& name, const std::function<void()>& body);
+bool test(std::string_view name, const std::function<void()>& body);
 
 // Return a proxy for the operator= syntax.
-TestProxy test(const std::string& name);
+TestProxy test(std::string_view name);
 
 // Run all registered tests. Returns 0 on success, 1 on failure.
 // Supports --list-tests and --test <name> when argc/argv are provided.

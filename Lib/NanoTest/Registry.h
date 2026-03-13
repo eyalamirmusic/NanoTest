@@ -11,10 +11,10 @@ namespace nano
 {
 struct Registry
 {
-    void add(const std::string& nameToUse,
+    void add(std::string_view nameToUse,
              const std::function<void()>& bodyToUse)
     {
-        tests.push_back({nameToUse, bodyToUse});
+        tests.push_back({std::string(nameToUse), bodyToUse});
     }
 
     void fail(const std::source_location& loc,
