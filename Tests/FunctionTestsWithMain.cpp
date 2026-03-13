@@ -1,20 +1,22 @@
 #include <NanoTest/NanoTest.h>
 
-auto checkTrue = nano::test("CheckTrue", [] { nano::check(true); });
+using namespace nano;
 
-auto checkEquality = nano::test("CheckEquality",
-                                []
-                                {
-                                    nano::check(2 + 2 == 4);
-                                    nano::check(2 + 2 != 5);
-                                });
+auto checkTrue = test("CheckTrue", [] { check(true); });
 
-auto checkStrings = nano::test("CheckStrings",
-                               []
-                               {
-                                   auto hello = std::string("hello");
-                                   nano::check(hello == "hello");
-                                   nano::check(hello != "world");
-                               });
+auto checkEquality = test("CheckEquality",
+                          []
+                          {
+                              check(2 + 2 == 4);
+                              check(2 + 2 != 5);
+                          });
 
-auto checkFalse = nano::test("CheckFalse", [] { nano::check(!false); });
+auto checkStrings = test("CheckStrings",
+                         []
+                         {
+                             auto hello = std::string("hello");
+                             check(hello == "hello");
+                             check(hello != "world");
+                         });
+
+auto checkFalse = test("CheckFalse", [] { check(!false); });
