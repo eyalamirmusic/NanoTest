@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is NanoTest
 
-A minimal C++20 testing library inspired by Catch2/GTest. It provides two equivalent APIs: macro-based (`NANO_TEST`/`NANO_ASSERT`) and function-based (`nano::test`/`nano::check`). Individual tests are auto-discovered by CTest via a post-build step that invokes the executable with `--list-tests`.
+A minimal, macro-free C++20 testing library inspired by Catch2/GTest. The API consists of three free functions: `nano::test`, `nano::check`, and `nano::run`. Individual tests are auto-discovered by CTest via a post-build step that invokes the executable with `--list-tests`.
 
 ## Build & Test Commands
 
@@ -17,10 +17,10 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 
 # Run a single test by name
-./build/Tests/NanoTestBasic --test TrueIsTrue
+./build/Tests/NanoTestFunctions --test CheckTrue
 
 # List all tests in an executable
-./build/Tests/NanoTestBasic --list-tests
+./build/Tests/NanoTestFunctions --list-tests
 
 # iOS (cross-compile only, no test execution)
 cmake -B build-ios -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 -G Xcode
@@ -32,7 +32,7 @@ clang-format -i Lib/NanoTest/*.h Lib/NanoTest/*.cpp Tests/*.cpp
 
 ## Architecture
 
-The public API is a single header (`Lib/NanoTest/NanoTest.h`) exposing only three free functions (`nano::test`, `nano::run`, `nano::check`) and three macros. All internal types are hidden in implementation-only headers inside `Lib/NanoTest/`:
+The public API is a single header (`Lib/NanoTest/NanoTest.h`) exposing three free functions (`nano::test`, `nano::run`, `nano::check`). A separate `NanoTestMain` library provides a prebuilt `main()` so test files don't need one. All internal types are hidden in implementation-only headers inside `Lib/NanoTest/`:
 
 - **Types.h** — `TestFailure` and `TestCase` structs
 - **Printer.h** — all console output (header, pass, failure, summary)
