@@ -5,5 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(Lib)
 
-enable_testing()
-add_subdirectory(Tests)
+option(NANO_BUILD_TESTS "Build NanoTest internal tests" OFF)
+
+if(PROJECT_IS_TOP_LEVEL OR NANO_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(Tests)
+endif()
