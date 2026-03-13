@@ -28,6 +28,17 @@ void Registry::fail(const std::source_location& loc,
                                std::string(message)});
 }
 
+AutoRegister::AutoRegister(std::string nameToUse, const Callback& bodyToUse)
+{
+    Registry::instance().add(std::move(nameToUse), std::move(bodyToUse));
+}
+
+bool test(std::string name, const Callback& body)
+{
+    Registry::instance().add(std::move(name), std::move(body));
+    return true;
+}
+
 int run()
 {
     return Registry::instance().run();

@@ -8,6 +8,7 @@
 
 namespace nano
 {
+using Callback = std::function<void()>;
 
 struct TestFailure
 {
@@ -20,7 +21,7 @@ struct TestFailure
 struct TestCase
 {
     std::string name;
-    std::function<void()> body;
+    Callback body;
 };
 
 class Registry
@@ -46,10 +47,7 @@ private:
 // RAII helper for auto-registration.
 struct AutoRegister
 {
-    AutoRegister(std::string nameToUse, std::function<void()> bodyToUse)
-    {
-        Registry::instance().add(std::move(nameToUse), std::move(bodyToUse));
-    }
+    AutoRegister(std::string nameToUse, const Callback& bodyToUse);
 };
 
 // ---------------------------------------------------------------------------
@@ -57,11 +55,7 @@ struct AutoRegister
 // ---------------------------------------------------------------------------
 
 // Register a test. Returns a dummy value for use with static auto.
-inline auto test(std::string name, std::function<void()> body) -> bool
-{
-    Registry::instance().add(std::move(name), std::move(body));
-    return true;
-}
+bool test(std::string name, const Callback& body);
 
 // Run all registered tests. Returns 0 on success, 1 on failure.
 int run();
