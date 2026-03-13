@@ -11,9 +11,10 @@ namespace nano
 {
 struct Registry
 {
-    void add(std::string nameToUse, const std::function<void()>& bodyToUse)
+    void add(const std::string& nameToUse,
+             const std::function<void()>& bodyToUse)
     {
-        tests.push_back({std::move(nameToUse), bodyToUse});
+        tests.push_back({nameToUse, bodyToUse});
     }
 
     void fail(const std::source_location& loc,
@@ -62,10 +63,6 @@ struct Registry
         return failed == 0 ? 0 : 1;
     }
 
-    std::vector<TestCase> tests;
-    bool currentFailed = false;
-    std::vector<TestFailure> currentFailures;
-
 private:
     std::vector<TestCase*> filteredTests(std::string_view filter)
     {
@@ -102,8 +99,13 @@ private:
     void recordException(std::string_view what)
     {
         currentFailed = true;
-        currentFailures.push_back({"<exception>", 0, "", std::string(what)});
+        currentFailures.push_back(
+            {"<exception>", 0, "", std::string(what)});
     }
+
+    std::vector<TestCase> tests;
+    bool currentFailed = false;
+    std::vector<TestFailure> currentFailures;
 };
 
 inline Registry& getRegistry()

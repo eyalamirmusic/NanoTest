@@ -14,10 +14,10 @@ Macro-free by design.
 
 using namespace nano;
 
-auto addition = test("Addition", []
+auto addition = test("Addition") = []
 {
     check(2 + 2 == 4);
-});
+};
 ```
 
 Using `using namespace nano;` keeps test files expressive and free of repetitive prefixes.
@@ -110,7 +110,7 @@ NanoTest builds on iOS, Emscripten, and other cross-compilation targets. Test di
 
 | Function | Description |
 |---|---|
-| `nano::test(name, body)` | Register a test case |
+| `nano::test(name) = body` | Register a test case |
 | `nano::check(expr)` | Assert that an expression is true |
 | `nano::run(argc, argv)` | Run tests, supports `--list-tests` and `--test <name>` |
 
