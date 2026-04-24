@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(NanoTest)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(NANO_DISABLE_EXCEPTIONS "Disable C++ exceptions globally" OFF)
 
