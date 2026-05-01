@@ -37,7 +37,7 @@ include(FetchContent)
 FetchContent_Declare(
         NanoTest
         GIT_REPOSITORY https://github.com/eyalamirmusic/NanoTest.git
-        GIT_TAG main
+        GIT_TAG v1.0.0
 )
 
 FetchContent_MakeAvailable(NanoTest)
