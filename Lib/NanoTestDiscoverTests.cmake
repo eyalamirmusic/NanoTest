@@ -69,12 +69,24 @@ function(nano_discover_tests TARGET)
         return()
     endif()
 
+    set(_ctest_file "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_tests.cmake")
+
+    # Placeholder so IDEs (notably CLion) see the test target at configure
+    # time, before the first build. POST_BUILD replaces it with one entry
+    # per test case. The EXISTS guard prevents a reconfigure from clobbering
+    # the real entries when the target is already up-to-date and POST_BUILD
+    # won't re-run.
+    if(NOT EXISTS "${_ctest_file}")
+        file(WRITE "${_ctest_file}"
+            "add_test(${TARGET} \"${CMAKE_COMMAND}\" -E true)\n")
+    endif()
+
     add_custom_command(
         TARGET ${TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND}
             -D "TEST_EXECUTABLE=$<TARGET_FILE:${TARGET}>"
             -D "TEST_PREFIX=${ARG_TEST_PREFIX}"
-            -D "CTEST_FILE=${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_tests.cmake"
+            -D "CTEST_FILE=${_ctest_file}"
             -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/NanoTestAddTests.cmake"
         VERBATIM
     )
@@ -82,6 +94,6 @@ function(nano_discover_tests TARGET)
     # Include the generated CTest file at test time.
     set_property(
         DIRECTORY APPEND PROPERTY
-        TEST_INCLUDE_FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_tests.cmake"
+        TEST_INCLUDE_FILES "${_ctest_file}"
     )
 endfunction()
