@@ -19,6 +19,9 @@ ctest --test-dir build --output-on-failure
 # Run a single test by name
 ./build/Tests/NanoTestFunctions --test CheckTrue
 
+# Run a group: the test named Net and every test under Net/
+./build/Tests/NanoTestFunctions --test-group Net
+
 # List all tests in an executable
 ./build/Tests/NanoTestFunctions --list-tests
 
@@ -37,9 +40,11 @@ The public API is a single header (`Lib/NanoTest/NanoTest.h`) exposing three fre
 - **Types.h** — `TestFailure` and `TestCase` structs
 - **Printer.h** — all console output (header, pass, failure, summary)
 - **Registry.h** — singleton test registry, filtering, execution, exception handling
-- **NanoTest.cpp** — wires the public API to the Registry; parses `--list-tests` and `--test` CLI args
+- **NanoTest.cpp** — wires the public API to the Registry; parses `--list-tests`, `--test` and `--test-group` CLI args
 
-**CMake integration** (`Lib/NanoTestDiscoverTests.cmake` + `NanoTestAddTests.cmake`): `nano_add_executable(MyTests file.cpp)` creates a test target, links NanoTest, and sets up post-build test discovery. When cross-compiling, discovery is skipped and the target is registered as a single CTest entry.
+**CMake integration** (`Lib/NanoTestDiscoverTests.cmake` + `NanoTestAddTests.cmake`): `nano_add_executable(MyTests file.cpp)` creates a test target, links NanoTest, and sets up post-build test discovery. `GROUP_BY CASE|PREFIX|EXECUTABLE` (default `CASE`, or `NANO_TEST_GROUP_BY`) decides whether discovery registers one CTest entry per case, per first name segment (`--test-group`), or per executable; `PROPERTIES` applies through a configure-time include file over the CTest-time `<TARGET>_TESTS` list. The grouping mode is on the POST_BUILD command line, so changing it relinks and rediscovers. When cross-compiling, discovery is skipped and the target is registered as a single CTest entry.
+
+`Tests/CheckDiscovery.cmake` checks the registered entries through `ctest --show-only=json-v1` and runs `FailingGroup` to check how a grouped failure is reported.
 
 ## Code Style
 

@@ -32,7 +32,7 @@ int run(const RunOptions& options)
         return 0;
     }
 
-    return reg.run(options.test);
+    return reg.run(options);
 }
 
 int run(int argc, char* argv[])
@@ -47,6 +47,8 @@ int run(int argc, char* argv[])
             options.listTests = true;
         else if (arg == "--test" && i + 1 < argc)
             options.test = argv[++i];
+        else if (arg == "--test-group" && i + 1 < argc)
+            options.group = argv[++i];
     }
 
     return run(options);

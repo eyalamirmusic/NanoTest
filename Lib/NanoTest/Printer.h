@@ -35,11 +35,21 @@ inline void failure(std::string_view name, const std::vector<TestFailure>& failu
     }
 }
 
-inline void summary(int passed, int failed)
+inline void summary(int passed, const std::vector<std::string_view>& failedNames)
 {
+    auto failed = static_cast<int>(failedNames.size());
+
     std::cout << '\n'
               << passed << " passed, " << failed << " failed, " << passed + failed
               << " total\n";
+
+    if (failedNames.empty())
+        return;
+
+    std::cout << "\nFailed tests:\n";
+
+    for (auto name: failedNames)
+        std::cout << "  " << name << '\n';
 }
 }; // namespace Printer
 

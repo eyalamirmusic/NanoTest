@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NanoTest.h"
 #include "Printer.h"
 #include "Types.h"
 
@@ -20,8 +21,7 @@ constexpr bool areExceptionsEnabled()
 
 struct Registry
 {
-    void add(std::string_view nameToUse,
-             const std::function<void()>& bodyToUse)
+    void add(std::string_view nameToUse, const std::function<void()>& bodyToUse)
     {
         tests.push_back({std::string(nameToUse), bodyToUse});
     }
@@ -43,14 +43,14 @@ struct Registry
             std::cout << name << '\n';
     }
 
-    int run(std::string_view filter = {})
+    int run(const RunOptions& options = {})
     {
-        auto filtered = filteredTests(filter);
+        auto filtered = filteredTests(options);
 
         Printer::header(filtered.size());
 
         auto passed = 0;
-        auto failed = 0;
+        auto failedNames = std::vector<std::string_view>();
 
         for (auto* test: filtered)
         {
@@ -58,7 +58,7 @@ struct Registry
 
             if (currentFailed)
             {
-                ++failed;
+                failedNames.push_back(test->name);
                 Printer::failure(test->name, currentFailures);
             }
             else
@@ -68,18 +68,40 @@ struct Registry
             }
         }
 
-        Printer::summary(passed, failed);
-        return failed == 0 ? 0 : 1;
+        Printer::summary(passed, failedNames);
+        return failedNames.empty() ? 0 : 1;
+    }
+
+    static bool isInGroup(std::string_view name, std::string_view group)
+    {
+        if (group.ends_with('/'))
+            group.remove_suffix(1);
+
+        if (!name.starts_with(group))
+            return false;
+
+        return name.size() == group.size() || name[group.size()] == '/';
     }
 
 private:
-    std::vector<TestCase*> filteredTests(std::string_view filter)
+    static bool isSelected(const TestCase& test, const RunOptions& options)
+    {
+        if (options.test.empty() && options.group.empty())
+            return true;
+
+        if (!options.test.empty() && test.name == options.test)
+            return true;
+
+        return !options.group.empty() && isInGroup(test.name, options.group);
+    }
+
+    std::vector<TestCase*> filteredTests(const RunOptions& options)
     {
         auto result = std::vector<TestCase*>();
 
         for (auto& t: tests)
         {
-            if (filter.empty() || t.name == filter)
+            if (isSelected(t, options))
                 result.push_back(&t);
         }
 
@@ -112,10 +134,8 @@ private:
     void recordException(std::string_view what)
     {
         currentFailed = true;
-        currentFailures.push_back(
-            {"<exception>", 0, "", std::string(what)});
+        currentFailures.push_back({"<exception>", 0, "", std::string(what)});
     }
-
 
     std::vector<TestCase> tests;
     bool currentFailed = false;

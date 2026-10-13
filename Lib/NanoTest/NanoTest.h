@@ -11,6 +11,9 @@ struct RunOptions
 {
     std::string_view test;
     bool listTests = false;
+
+    // Runs the case named exactly 'group' and every case under 'group/'.
+    std::string_view group;
 };
 
 //'TestProxy' is a dummy value that needs to be returns from 'test'.
@@ -28,7 +31,8 @@ bool test(std::string_view name, const std::function<void()>& body);
 TestProxy test(std::string_view name);
 
 // Run all registered tests. Returns 0 on success, 1 on failure.
-// Supports --list-tests and --test <name> when argc/argv are provided.
+// Supports --list-tests, --test <name> and --test-group <name> when argc/argv
+// are provided.
 int run(int argc = 0, char* argv[] = nullptr);
 
 // Same as the argc/argv version but supports manual argument passing:

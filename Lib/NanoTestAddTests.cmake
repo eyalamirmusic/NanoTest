@@ -1,5 +1,7 @@
 # Script invoked at build time by nano_discover_tests().
-# Runs the test executable with --list-tests and generates add_test() calls.
+# Runs the test executable with --list-tests and generates add_test() calls:
+# one per case (CASE), one per first name segment (PREFIX) or one for the
+# whole executable (EXECUTABLE).
 
 execute_process(
     COMMAND "${TEST_EXECUTABLE}" --list-tests
@@ -14,13 +16,53 @@ endif()
 
 # Convert newline-separated output to a CMake list.
 string(REPLACE "\n" ";" test_names "${test_list}")
+list(REMOVE_ITEM test_names "")
 
-# Write a CTest file with one add_test() per test case.
+set(ctest_names "")
 file(WRITE "${CTEST_FILE}" "")
-foreach(test_name IN LISTS test_names)
-    if(NOT test_name STREQUAL "")
-        file(APPEND "${CTEST_FILE}"
-            "add_test(\"${TEST_PREFIX}${test_name}\" \"${TEST_EXECUTABLE}\" --test \"${test_name}\")\n"
-        )
+
+function(nano_write_test ctest_name)
+    file(APPEND "${CTEST_FILE}" "add_test(\"${ctest_name}\" \"${TEST_EXECUTABLE}\"")
+
+    foreach(arg IN LISTS ARGN)
+        file(APPEND "${CTEST_FILE}" " \"${arg}\"")
+    endforeach()
+
+    file(APPEND "${CTEST_FILE}" ")\n")
+
+    set(ctest_names "${ctest_names};${ctest_name}" PARENT_SCOPE)
+endfunction()
+
+if(TEST_GROUP_BY STREQUAL "EXECUTABLE")
+    if(test_names)
+        nano_write_test("${TEST_PREFIX}${TEST_TARGET}")
     endif()
-endforeach()
+elseif(TEST_GROUP_BY STREQUAL "PREFIX")
+    set(groups "")
+
+    foreach(test_name IN LISTS test_names)
+        string(REGEX REPLACE "/.*" "" group "${test_name}")
+
+        if(group STREQUAL "")
+            set(group "${test_name}")
+        endif()
+
+        list(APPEND groups "${group}")
+    endforeach()
+
+    list(REMOVE_DUPLICATES groups)
+
+    foreach(group IN LISTS groups)
+        nano_write_test("${TEST_PREFIX}${group}" --test-group "${group}")
+    endforeach()
+else()
+    foreach(test_name IN LISTS test_names)
+        nano_write_test("${TEST_PREFIX}${test_name}" --test "${test_name}")
+    endforeach()
+endif()
+
+list(REMOVE_ITEM ctest_names "")
+list(JOIN ctest_names "]==] [==[" ctest_name_args)
+
+file(APPEND "${CTEST_FILE}"
+    "set([==[${TEST_TARGET}_TESTS]==] [==[${ctest_name_args}]==])\n")

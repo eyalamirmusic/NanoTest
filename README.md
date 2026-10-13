@@ -90,6 +90,52 @@ Both functions also accept `TEST_PREFIX` to namespace CTest entries when test na
 nano_add_executable(MyTests SOURCES tests.cpp TEST_PREFIX "MyTests:")
 ```
 
+### Grouping CTest entries
+
+By default every test case is its own CTest entry and runs in its own process.
+When process startup dominates — a test `main()` that brings up an event loop
+or a GPU device, say — pass `GROUP_BY` to run several cases per process:
+
+```cmake
+nano_add_executable(MyTests SOURCES tests.cpp GROUP_BY PREFIX)
+```
+
+| `GROUP_BY` | CTest entries | Each runs |
+|---|---|---|
+| `CASE` (default) | one per case, named after it | `MyTests --test <name>` |
+| `PREFIX` | one per first `/`-separated name segment, named after it | `MyTests --test-group <segment>` |
+| `EXECUTABLE` | one for the whole executable, named after the target | `MyTests` |
+
+With `PREFIX`, the cases `Net`, `Net/get` and `Net/Socket/open` are the one
+entry `Net`. A failing case does not stop the rest of its group; the entry
+fails, and its output marks each case `PASS` or `FAIL` and ends with the list
+of failed cases. Discovery runs after every build, so the groups follow the
+names as cases are added and removed.
+
+To switch every executable in a project at once, set `NANO_TEST_GROUP_BY`
+before the calls; an explicit `GROUP_BY` still wins:
+
+```cmake
+set(NANO_TEST_GROUP_BY PREFIX)
+```
+
+### Test properties
+
+`PROPERTIES` sets CTest properties on every entry a call creates, whichever
+grouping it uses. List values are passed whole:
+
+```cmake
+nano_add_executable(MyTests SOURCES tests.cpp GROUP_BY PREFIX
+    PROPERTIES LABELS gpu TIMEOUT 120 RESOURCE_LOCK "display;clipboard")
+```
+
+To set properties on particular entries, write `set_tests_properties` calls
+into a file and append it to the directory's `TEST_INCLUDE_FILES` after the
+`nano_*` call, so the entries exist when it runs. Name the entries as CTest
+will: the case name under `CASE`, the first segment under `PREFIX`, both
+after any `TEST_PREFIX`. The list of entry names is in the CTest-time
+variable `<TARGET>_TESTS`.
+
 Build and run:
 
 ```bash
@@ -111,6 +157,9 @@ ctest --test-dir build --output-on-failure
 # Run a single test by name
 ./build/MyTests --test Addition
 
+# Run a group: the test named Net and every test under Net/
+./build/MyTests --test-group Net
+
 # List all registered tests
 ./build/MyTests --list-tests
 ```
@@ -125,7 +174,7 @@ NanoTest builds on iOS, Emscripten, and other cross-compilation targets. Test di
 |---|---|
 | `nano::test(name) = body` | Register a test case |
 | `nano::check(expr)` | Assert that an expression is true |
-| `nano::run(argc, argv)` | Run tests, supports `--list-tests` and `--test <name>` |
+| `nano::run(argc, argv)` | Run tests, supports `--list-tests`, `--test <name>` and `--test-group <name>` |
 
 ## Requirements
 
