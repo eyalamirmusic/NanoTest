@@ -3,6 +3,10 @@
 # one per case (CASE), one per first name segment (PREFIX) or one for the
 # whole executable (EXECUTABLE).
 
+# A script run with cmake -P sets no policy version, so on CMake 3.x every
+# list() over an empty element warns under CMP0007.
+cmake_policy(VERSION 3.31)
+
 execute_process(
     COMMAND "${TEST_EXECUTABLE}" --list-tests
     OUTPUT_VARIABLE test_list
@@ -30,7 +34,8 @@ function(nano_write_test ctest_name)
 
     file(APPEND "${CTEST_FILE}" ")\n")
 
-    set(ctest_names "${ctest_names};${ctest_name}" PARENT_SCOPE)
+    list(APPEND ctest_names "${ctest_name}")
+    set(ctest_names "${ctest_names}" PARENT_SCOPE)
 endfunction()
 
 if(TEST_GROUP_BY STREQUAL "EXECUTABLE")
@@ -61,7 +66,6 @@ else()
     endforeach()
 endif()
 
-list(REMOVE_ITEM ctest_names "")
 list(JOIN ctest_names "]==] [==[" ctest_name_args)
 
 file(APPEND "${CTEST_FILE}"

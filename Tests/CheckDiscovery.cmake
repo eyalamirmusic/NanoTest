@@ -169,6 +169,51 @@ if(NOT case_arguments STREQUAL "--test Alpha/sub/two")
     report("Case:Alpha/sub/two runs '${case_arguments}'")
 endif()
 
+# Discovery itself, rerun for each mode: no warning, and the same entries the
+# POST_BUILD step wrote.
+foreach(mode_target IN ITEMS
+        "CASE|Case:|GroupedByCase|${GROUPED_BY_CASE}"
+        "PREFIX|Prefix:|GroupedByPrefix|${GROUPED_BY_PREFIX}"
+        "EXECUTABLE|Whole:|GroupedWhole|${GROUPED_WHOLE}")
+    string(REPLACE "|" ";" mode_target "${mode_target}")
+    list(GET mode_target 0 mode)
+    list(GET mode_target 1 prefix)
+    list(GET mode_target 2 target)
+    list(GET mode_target 3 executable)
+
+    set(rediscovered "${TEST_DIR}/${target}_rediscovered.cmake")
+
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}"
+            -D "TEST_EXECUTABLE=${executable}"
+            -D "TEST_TARGET=${target}"
+            -D "TEST_PREFIX=${prefix}"
+            -D "TEST_GROUP_BY=${mode}"
+            -D "CTEST_FILE=${rediscovered}"
+            -P "${ADD_TESTS_SCRIPT}"
+        OUTPUT_VARIABLE discovery_output
+        ERROR_VARIABLE discovery_output
+        RESULT_VARIABLE result
+    )
+
+    if(NOT result EQUAL 0)
+        report("${mode} discovery failed: ${discovery_output}")
+    endif()
+
+    string(FIND "${discovery_output}" "Warning" position)
+
+    if(NOT position EQUAL -1)
+        report("${mode} discovery warned: ${discovery_output}")
+    endif()
+
+    file(READ "${rediscovered}" rediscovered_text)
+    file(READ "${TEST_DIR}/${target}_tests.cmake" registered_text)
+
+    if(NOT rediscovered_text STREQUAL registered_text)
+        report("${mode} discovery wrote:\n${rediscovered_text}")
+    endif()
+endforeach()
+
 # A grouped run with a failing case runs the rest and names the failure.
 execute_process(
     COMMAND "${FAILING_GROUP}" --test-group Failing

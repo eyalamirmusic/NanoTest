@@ -44,7 +44,7 @@ The public API is a single header (`Lib/NanoTest/NanoTest.h`) exposing three fre
 
 **CMake integration** (`Lib/NanoTestDiscoverTests.cmake` + `NanoTestAddTests.cmake`): `nano_add_executable(MyTests file.cpp)` creates a test target, links NanoTest, and sets up post-build test discovery. `GROUP_BY CASE|PREFIX|EXECUTABLE` (default `CASE`, or `NANO_TEST_GROUP_BY`) decides whether discovery registers one CTest entry per case, per first name segment (`--test-group`), or per executable; `PROPERTIES` applies through a configure-time include file over the CTest-time `<TARGET>_TESTS` list. The grouping mode is on the POST_BUILD command line, so changing it relinks and rediscovers. When cross-compiling, discovery is skipped and the target is registered as a single CTest entry.
 
-`Tests/CheckDiscovery.cmake` checks the registered entries through `ctest --show-only=json-v1` and runs `FailingGroup` to check how a grouped failure is reported.
+`Tests/CheckDiscovery.cmake` checks the registered entries through `ctest --show-only=json-v1`, reruns `NanoTestAddTests.cmake` in each grouping mode to check it prints no warning, and runs `FailingGroup` to check how a grouped failure is reported.
 
 ## Code Style
 
