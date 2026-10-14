@@ -34,5 +34,9 @@ if(NOT CMAKE_CROSSCOMPILING)
             -D "CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
             -D "TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}"
             -D "FAILING_GROUP=$<TARGET_FILE:FailingGroup>"
+            -D "ADD_TESTS_SCRIPT=${NanoTest_SOURCE_DIR}/Lib/NanoTestAddTests.cmake"
+            -D "GROUPED_BY_CASE=$<TARGET_FILE:GroupedByCase>"
+            -D "GROUPED_BY_PREFIX=$<TARGET_FILE:GroupedByPrefix>"
+            -D "GROUPED_WHOLE=$<TARGET_FILE:GroupedWhole>"
             -P "${CMAKE_CURRENT_SOURCE_DIR}/CheckDiscovery.cmake")
 endif()
